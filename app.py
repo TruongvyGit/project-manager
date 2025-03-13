@@ -1,6 +1,8 @@
 from flask import Flask, request, render_template, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
+import random
+import string
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Thay bằng key ngẫu nhiên
@@ -21,6 +23,11 @@ def init_db():
                   ('admin', generate_password_hash('1234')))
     conn.commit()
     conn.close()
+
+# Hàm tạo mật khẩu ngẫu nhiên
+def generate_random_password(length=8):
+    characters = string.ascii_letters + string.digits
+    return ''.join(random.choice(characters) for i in range(length))
 
 # Route đăng nhập
 @app.route('/login', methods=['GET', 'POST'])
@@ -61,29 +68,6 @@ def register():
         flash('Registration successful! Please login.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html')
-
-    # Route cài đặt
-@app.route('/settings', methods=['GET', 'POST'])
-def settings():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    conn = sqlite3.connect('database.db')
-    c = conn.cursor()
-    c.execute("SELECT username FROM users WHERE id = ?", (session['user_id'],))
-    user = c.fetchone()
-    if request.method == 'POST':
-        new_username = request.form['new_username']
-        c.execute("SELECT id FROM users WHERE username = ? AND id != ?", (new_username, session['user_id']))
-        if c.fetchone():
-            flash('Username already exists!', 'error')
-        else:
-            c.execute("UPDATE users SET username = ? WHERE id = ?", (new_username, session['user_id']))
-            flash('Username updated successfully!', 'success')
-        conn.commit()
-    c.execute("SELECT username FROM users WHERE id = ?", (session['user_id'],))
-    user = c.fetchone()
-    conn.close()
-    return render_template('settings.html', user=user)
 
 # Route quên mật khẩu
 @app.route('/forgot_password', methods=['GET', 'POST'])
@@ -137,6 +121,29 @@ def logout():
     session.pop('user_id', None)
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
+
+# Route cài đặt
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute("SELECT username FROM users WHERE id = ?", (session['user_id'],))
+    user = c.fetchone()
+    if request.method == 'POST':
+        new_username = request.form['new_username']
+        c.execute("SELECT id FROM users WHERE username = ? AND id != ?", (new_username, session['user_id']))
+        if c.fetchone():
+            flash('Username already exists!', 'error')
+        else:
+            c.execute("UPDATE users SET username = ? WHERE id = ?", (new_username, session['user_id']))
+            flash('Username updated successfully!', 'success')
+        conn.commit()
+    c.execute("SELECT username FROM users WHERE id = ?", (session['user_id'],))
+    user = c.fetchone()
+    conn.close()
+    return render_template('settings.html', user=user)
 
 # Route trang chính
 @app.route('/')
