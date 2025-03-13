@@ -11,7 +11,7 @@ app.secret_key = 'your_secret_key'  # Thay bằng key ngẫu nhiên
 app.config['UPLOAD_FOLDER'] = 'static/uploads'  # Thư mục lưu avatar
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 
-# Tạo thư mục uploads nếu chưa có
+# Tạo thư mục uploads nếu chưa có (chạy cục bộ)
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
@@ -22,12 +22,14 @@ def allowed_file(filename):
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
+    # Tạo bảng users với các cột cần thiết
     c.execute('''CREATE TABLE IF NOT EXISTS users 
                  (id INTEGER PRIMARY KEY, username TEXT UNIQUE, email TEXT UNIQUE, password TEXT, avatar TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS projects 
                  (id INTEGER PRIMARY KEY, name TEXT, user_id INTEGER)''')
     c.execute('''CREATE TABLE IF NOT EXISTS tasks 
                  (id INTEGER PRIMARY KEY, project_id INTEGER, description TEXT, assigned_to TEXT, status TEXT)''')
+    # Thêm user admin mặc định nếu chưa có
     c.execute("SELECT id FROM users WHERE username = ?", ('admin',))
     if not c.fetchone():
         c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", 
@@ -44,7 +46,7 @@ def generate_random_password(length=8):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        identifier = request.form['identifier']  # Có thể là username hoặc email
+        identifier = request.form['identifier']
         password = request.form['password']
         conn = sqlite3.connect('database.db')
         c = conn.cursor()
@@ -144,13 +146,7 @@ def settings():
     c.execute("SELECT username, email FROM users WHERE id = ?", (session['user_id'],))
     user = c.fetchone()
     if request.method == 'POST':
-        if 'avatar' in request.files:
-            file = request.files['avatar']
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                c.execute("UPDATE users SET avatar = ? WHERE id = ?", (filename, session['user_id']))
-        elif 'new_username' in request.form:
+        if 'new_username' in request.form:
             new_username = request.form['new_username']
             c.execute("SELECT id FROM users WHERE username = ? AND id != ?", (new_username, session['user_id']))
             if c.fetchone():
