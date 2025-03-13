@@ -24,6 +24,9 @@ def init_db():
     conn.commit()
     conn.close()
 
+# Gọi init_db() ngay khi ứng dụng khởi động
+init_db()
+
 # Hàm tạo mật khẩu ngẫu nhiên
 def generate_random_password(length=8):
     characters = string.ascii_letters + string.digits
@@ -298,5 +301,4 @@ def search():
     return render_template('search.html')
 
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True, host='0.0.0.0', port=5000)
