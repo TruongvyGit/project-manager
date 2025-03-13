@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head><title>Projects</title></head>
+<body>
+    <h1>Project List - TEST</h1>
+    <a href="/add_project">Add Project</a>
+    <ul>
+    {% for project in projects %}
+        <li>{{ project[1] }} <a href="/add_task/{{ project[0] }}">Add Task</a> <a href="/delete_project/{{ project[0] }}">Delete</a></li>
+    {% endfor %}
+    </ul>
+    <h2>Tasks</h2>
+    <ul>
+    {% for task in tasks %}
+        <li>{{ task[1] }} - Assigned to: {{ task[2] }} - Status: {{ task[3] }} (Project: {{ task[4] }}) <a href="/delete_task/{{ task[0] }}">Delete</a></li>
+    {% endfor %}
+    </ul>
+</body>
+</html>

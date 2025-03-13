@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head><title>Add Task</title></head>
+<body>
+    <h1>Add Task</h1>
+    <form method="POST">
+        <input type="text" name="description" placeholder="Task Description" required><br>
+        <input type="text" name="assigned_to" placeholder="Assigned To" required><br>
+        <select name="status">
+            <option value="Not Started">Not Started</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+        </select><br>
+        <button type="submit">Add Task</button>
+    </form>
+</body>
+</html>
