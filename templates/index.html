@@ -3,7 +3,17 @@
 <head><title>Projects</title></head>
 <body>
     <h1>Project List - TEST</h1>
-    <p><a href="/change_password">Change Password</a> | <a href="/search">Search</a> | <a href="/logout">Logout</a></p>
+    <div>
+        {% if user[1] %}
+            <img src="/static/uploads/{{ user[1] }}" alt="Avatar" width="50" height="50">
+        {% else %}
+            <div style="width:50px;height:50px;background:#ccc;border-radius:50%;text-align:center;line-height:50px;font-size:24px;">
+                {{ user[0]|first|upper }}
+            </div>
+        {% endif %}
+        <p>Welcome, {{ user[0] }}!</p>
+    </div>
+    <p><a href="/settings">Settings</a> | <a href="/search">Search</a> | <a href="/logout">Logout</a></p>
     <a href="/add_project">Add Project</a>
     <ul>
     {% for project in projects %}
