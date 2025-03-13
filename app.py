@@ -1,56 +1,36 @@
 from flask import Flask, request, render_template, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
-import random
-import string
-import os
-from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Thay bằng key ngẫu nhiên
-app.config['UPLOAD_FOLDER'] = 'static/uploads'  # Thư mục lưu avatar
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
-
-# Tạo thư mục uploads nếu chưa có (chạy cục bộ)
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 # Khởi tạo database
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
-    # Tạo bảng users với các cột cần thiết
     c.execute('''CREATE TABLE IF NOT EXISTS users 
-                 (id INTEGER PRIMARY KEY, username TEXT UNIQUE, email TEXT UNIQUE, password TEXT, avatar TEXT)''')
+                 (id INTEGER PRIMARY KEY, username TEXT UNIQUE, password TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS projects 
                  (id INTEGER PRIMARY KEY, name TEXT, user_id INTEGER)''')
     c.execute('''CREATE TABLE IF NOT EXISTS tasks 
                  (id INTEGER PRIMARY KEY, project_id INTEGER, description TEXT, assigned_to TEXT, status TEXT)''')
-    # Thêm user admin mặc định nếu chưa có
     c.execute("SELECT id FROM users WHERE username = ?", ('admin',))
     if not c.fetchone():
-        c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", 
-                  ('admin', 'admin@example.com', generate_password_hash('1234')))
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", 
+                  ('admin', generate_password_hash('1234')))
     conn.commit()
     conn.close()
-
-# Hàm tạo mật khẩu ngẫu nhiên
-def generate_random_password(length=8):
-    characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for i in range(length))
 
 # Route đăng nhập
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        identifier = request.form['identifier']
+        username = request.form['username']
         password = request.form['password']
         conn = sqlite3.connect('database.db')
         c = conn.cursor()
-        c.execute("SELECT id, password FROM users WHERE username = ? OR email = ?", (identifier, identifier))
+        c.execute("SELECT id, password FROM users WHERE username = ?", (username,))
         user = c.fetchone()
         conn.close()
         if user and check_password_hash(user[1], password):
@@ -58,7 +38,7 @@ def login():
             flash('Login successful!', 'success')
             return redirect(url_for('index'))
         else:
-            flash('Invalid username/email or password!', 'error')
+            flash('Invalid username or password!', 'error')
     return render_template('login.html')
 
 # Route đăng ký
@@ -66,43 +46,65 @@ def login():
 def register():
     if request.method == 'POST':
         username = request.form['username']
-        email = request.form['email']
         password = request.form['password']
         conn = sqlite3.connect('database.db')
         c = conn.cursor()
-        c.execute("SELECT id FROM users WHERE username = ? OR email = ?", (username, email))
+        c.execute("SELECT id FROM users WHERE username = ?", (username,))
         if c.fetchone():
-            flash('Username or email already exists!', 'error')
+            flash('Username already exists!', 'error')
             conn.close()
             return redirect(url_for('register'))
-        c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", 
-                  (username, email, generate_password_hash(password)))
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", 
+                  (username, generate_password_hash(password)))
         conn.commit()
         conn.close()
         flash('Registration successful! Please login.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html')
 
+    # Route cài đặt
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute("SELECT username FROM users WHERE id = ?", (session['user_id'],))
+    user = c.fetchone()
+    if request.method == 'POST':
+        new_username = request.form['new_username']
+        c.execute("SELECT id FROM users WHERE username = ? AND id != ?", (new_username, session['user_id']))
+        if c.fetchone():
+            flash('Username already exists!', 'error')
+        else:
+            c.execute("UPDATE users SET username = ? WHERE id = ?", (new_username, session['user_id']))
+            flash('Username updated successfully!', 'success')
+        conn.commit()
+    c.execute("SELECT username FROM users WHERE id = ?", (session['user_id'],))
+    user = c.fetchone()
+    conn.close()
+    return render_template('settings.html', user=user)
+
 # Route quên mật khẩu
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
-        identifier = request.form['identifier']
+        username = request.form['username']
         conn = sqlite3.connect('database.db')
         c = conn.cursor()
-        c.execute("SELECT id FROM users WHERE username = ? OR email = ?", (identifier, identifier))
+        c.execute("SELECT id FROM users WHERE username = ?", (username,))
         user = c.fetchone()
         if user:
             new_password = generate_random_password()
-            c.execute("UPDATE users SET password = ? WHERE id = ?", 
-                      (generate_password_hash(new_password), user[0]))
+            c.execute("UPDATE users SET password = ? WHERE username = ?", 
+                      (generate_password_hash(new_password), username))
             conn.commit()
             conn.close()
             flash(f'Your new password is: {new_password}. Please login and change it.', 'success')
             return redirect(url_for('login'))
         else:
             conn.close()
-            flash('Username or email not found!', 'error')
+            flash('Username not found!', 'error')
     return render_template('forgot_password.html')
 
 # Route thay đổi mật khẩu
@@ -136,38 +138,6 @@ def logout():
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
 
-# Route cài đặt
-@app.route('/settings', methods=['GET', 'POST'])
-def settings():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    conn = sqlite3.connect('database.db')
-    c = conn.cursor()
-    c.execute("SELECT username, email FROM users WHERE id = ?", (session['user_id'],))
-    user = c.fetchone()
-    if request.method == 'POST':
-        if 'new_username' in request.form:
-            new_username = request.form['new_username']
-            c.execute("SELECT id FROM users WHERE username = ? AND id != ?", (new_username, session['user_id']))
-            if c.fetchone():
-                flash('Username already exists!', 'error')
-            else:
-                c.execute("UPDATE users SET username = ? WHERE id = ?", (new_username, session['user_id']))
-                flash('Username updated successfully!', 'success')
-        elif 'new_email' in request.form:
-            new_email = request.form['new_email']
-            c.execute("SELECT id FROM users WHERE email = ? AND id != ?", (new_email, session['user_id']))
-            if c.fetchone():
-                flash('Email already exists!', 'error')
-            else:
-                c.execute("UPDATE users SET email = ? WHERE id = ?", (new_email, session['user_id']))
-                flash('Email updated successfully!', 'success')
-        conn.commit()
-    c.execute("SELECT username, email FROM users WHERE id = ?", (session['user_id'],))
-    user = c.fetchone()
-    conn.close()
-    return render_template('settings.html', user=user)
-
 # Route trang chính
 @app.route('/')
 def index():
@@ -179,7 +149,7 @@ def index():
     projects = c.fetchall()
     c.execute("SELECT t.id, t.description, t.assigned_to, t.status, p.name FROM tasks t JOIN projects p ON t.project_id = p.id WHERE p.user_id = ?", (session['user_id'],))
     tasks = c.fetchall()
-    c.execute("SELECT username, avatar FROM users WHERE id = ?", (session['user_id'],))
+    c.execute("SELECT username FROM users WHERE id = ?", (session['user_id'],))
     user = c.fetchone()
     conn.close()
     return render_template('index.html', projects=projects, tasks=tasks, user=user)
