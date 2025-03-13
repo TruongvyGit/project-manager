@@ -1,0 +1,36 @@
+{% extends "layouts/base.html" %}
+{% block title %}Kết quả tìm kiếm{% endblock %}
+{% block content %}
+<h1>Kết quả tìm kiếm cho "{{ keyword }}"</h1>
+<h2>Dự án</h2>
+<ul>
+{% for project in projects %}
+    <li>{{ project[1] }} 
+        <a href="{{ url_for('project.edit_project', project_id=project[0]) }}">Sửa</a> 
+        <a href="{{ url_for('project.delete_project', project_id=project[0]) }}">Xóa</a>
+    </li>
+{% else %}
+    <li>Không tìm thấy dự án.</li>
+{% endfor %}
+</ul>
+<h2>Nhiệm vụ</h2>
+<ul>
+{% for task in tasks %}
+    <li>{{ task[1] }} - Giao cho: {{ task[2] }} - Trạng thái: {{ task[3] }} (Dự án: {{ task[4] }}) 
+        <a href="{{ url_for('project.edit_task', task_id=task[0]) }}">Sửa</a> 
+        <a href="{{ url_for('project.delete_task', task_id=task[0]) }}">Xóa</a>
+    </li>
+{% else %}
+    <li>Không tìm thấy nhiệm vụ.</li>
+{% endfor %}
+</ul>
+<h2>Người dùng (Được giao trong nhiệm vụ)</h2>
+<ul>
+{% for user in users %}
+    <li>{{ user }}</li>
+{% else %}
+    <li>Không tìm thấy người dùng.</li>
+{% endfor %}
+</ul>
+<p><a href="{{ url_for('project.search') }}">Tìm kiếm lại</a> | <a href="{{ url_for('project.dashboard') }}">Quay lại trang chủ</a></p>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "layouts/base.html" %}
+{% block title %}Đăng ký{% endblock %}
+{% block content %}
+<h1>Đăng ký</h1>
+<form method="POST">
+    <input type="text" name="username" placeholder="Tên đăng nhập" required><br>
+    <input type="password" name="password" id="password" placeholder="Mật khẩu" required><br>
+    <input type="checkbox" id="showPassword" onclick="togglePassword()"> Hiển thị mật khẩu<br>
+    <button type="submit">Đăng ký</button>
+</form>
+<p>Đã có tài khoản? <a href="{{ url_for('auth.login') }}">Đăng nhập tại đây</a></p>
+<script>
+    function togglePassword() {
+        var passwordField = document.getElementById("password");
+        var showPassword = document.getElementById("showPassword");
+        if (showPassword.checked) {
+            passwordField.type = "text";
+        } else {
+            passwordField.type = "password";
+        }
+    }
+</script>
+{% endblock %}

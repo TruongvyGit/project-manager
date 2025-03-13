@@ -1,0 +1,16 @@
+{% extends "layouts/base.html" %}
+{% block title %}Thêm nhiệm vụ{% endblock %}
+{% block content %}
+<h1>Thêm nhiệm vụ</h1>
+<form method="POST">
+    <input type="text" name="description" placeholder="Mô tả" required><br>
+    <input type="text" name="assigned_to" placeholder="Giao cho" required><br>
+    <select name="status" required>
+        <option value="Chưa tiến hành">Chưa tiến hành</option>
+        <option value="Đang tiến hành">Đang tiến hành</option>
+        <option value="Hoàn thành">Hoàn thành</option>
+    </select><br>
+    <button type="submit">Thêm nhiệm vụ</button>
+</form>
+<p><a href="{{ url_for('project.dashboard') }}">Quay lại trang chủ</a></p>
+{% endblock %}

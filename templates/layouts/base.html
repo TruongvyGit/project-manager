@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('project.dashboard') }}">Dashboard</a> |
+        <a href="{{ url_for('project.search') }}">Tìm kiếm</a> |
+        <a href="{{ url_for('settings.settings') }}">Cài đặt</a> |
+        <a href="{{ url_for('auth.logout') }}">Đăng xuất</a>
+    </nav>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <p class="{{ category }}">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

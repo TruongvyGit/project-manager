@@ -1,0 +1,14 @@
+{% extends "layouts/base.html" %}
+{% block title %}Cài đặt{% endblock %}
+{% block content %}
+<h1>Cài đặt</h1>
+<h2>Đổi tên đăng nhập</h2>
+<form method="POST">
+    <input type="text" name="new_username" placeholder="Tên đăng nhập mới" value="{{ user[0] }}" required><br>
+    <button type="submit">Cập nhật tên đăng nhập</button>
+</form>
+<p><a href="{{ url_for('settings.change_password') }}">Đổi mật khẩu</a></p>
+<p><a href="{{ url_for('auth.forgot_password') }}">Quên mật khẩu</a></p>
+<p><a href="{{ url_for('auth.logout') }}">Đăng xuất</a></p>
+<p><a href="{{ url_for('project.dashboard') }}">Quay lại trang chủ</a></p>
+{% endblock %}

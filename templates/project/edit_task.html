@@ -1,0 +1,16 @@
+{% extends "layouts/base.html" %}
+{% block title %}Sửa nhiệm vụ{% endblock %}
+{% block content %}
+<h1>Sửa nhiệm vụ</h1>
+<form method="POST">
+    <input type="text" name="description" value="{{ task[0] }}" required><br>
+    <input type="text" name="assigned_to" value="{{ task[1] }}" required><br>
+    <select name="status" required>
+        <option value="Chưa tiến hành" {% if task[2] == "Chưa tiến hành" %}selected{% endif %}>Chưa tiến hành</option>
+        <option value="Đang tiến hành" {% if task[2] == "Đang tiến hành" %}selected{% endif %}>Đang tiến hành</option>
+        <option value="Hoàn thành" {% if task[2] == "Hoàn thành" %}selected{% endif %}>Hoàn thành</option>
+    </select><br>
+    <button type="submit">Cập nhật nhiệm vụ</button>
+</form>
+<p><a href="{{ url_for('project.dashboard') }}">Quay lại trang chủ</a></p>
+{% endblock %}

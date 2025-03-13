@@ -1,0 +1,25 @@
+{% extends "layouts/base.html" %}
+{% block title %}Trang tổng quan{% endblock %}
+{% block content %}
+<h1>Trang tổng quan</h1>
+<p>Chào mừng, {{ user[0] }}!</p>
+<a href="{{ url_for('project.add_project') }}">Thêm dự án</a>
+<ul>
+{% for project in projects %}
+    <li>{{ project[1] }} 
+        <a href="{{ url_for('project.add_task', project_id=project[0]) }}">Thêm nhiệm vụ</a> 
+        <a href="{{ url_for('project.edit_project', project_id=project[0]) }}">Sửa</a> 
+        <a href="{{ url_for('project.delete_project', project_id=project[0]) }}">Xóa</a>
+    </li>
+{% endfor %}
+</ul>
+<h2>Nhiệm vụ</h2>
+<ul>
+{% for task in tasks %}
+    <li>{{ task[1] }} - Giao cho: {{ task[2] }} - Trạng thái: {{ task[3] }} (Dự án: {{ task[4] }}) 
+        <a href="{{ url_for('project.edit_task', task_id=task[0]) }}">Sửa</a> 
+        <a href="{{ url_for('project.delete_task', task_id=task[0]) }}">Xóa</a>
+    </li>
+{% endfor %}
+</ul>
+{% endblock %}

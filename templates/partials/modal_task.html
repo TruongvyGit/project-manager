@@ -1,0 +1,16 @@
+<div class="modal" id="modal-task">
+    <div class="modal-content">
+        <h2>Thêm nhiệm vụ</h2>
+        <form id="add-task-form">
+            <input type="text" name="description" placeholder="Mô tả" required><br>
+            <input type="text" name="assigned_to" placeholder="Giao cho" required><br>
+            <select name="status" required>
+                <option value="Chưa tiến hành">Chưa tiến hành</option>
+                <option value="Đang tiến hành">Đang tiến hành</option>
+                <option value="Hoàn thành">Hoàn thành</option>
+            </select><br>
+            <button type="submit">Lưu</button>
+            <button type="button" onclick="closeModal('modal-task')">Hủy</button>
+        </form>
+    </div>
+</div>
