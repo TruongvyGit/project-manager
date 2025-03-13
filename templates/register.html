@@ -12,9 +12,21 @@
     {% endwith %}
     <form method="POST">
         <input type="text" name="username" placeholder="Username" required><br>
-        <input type="password" name="password" placeholder="Password" required><br>
+        <input type="password" name="password" id="password" placeholder="Password" required><br>
+        <input type="checkbox" id="showPassword" onclick="togglePassword()"> Show Password<br>
         <button type="submit">Register</button>
     </form>
     <p>Already have an account? <a href="/login">Login here</a></p>
+    <script>
+        function togglePassword() {
+            var passwordField = document.getElementById("password");
+            var showPassword = document.getElementById("showPassword");
+            if (showPassword.checked) {
+                passwordField.type = "text";
+            } else {
+                passwordField.type = "password";
+            }
+        }
+    </script>
 </body>
 </html>

@@ -1,9 +1,11 @@
 from flask import Flask, request, render_template, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
+import random
+import string
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Thay bằng key ngẫu nhiên, ví dụ: os.urandom(24)
+app.secret_key = 'your_secret_key'  # Thay bằng key ngẫu nhiên
 
 # Khởi tạo database
 def init_db():
@@ -15,13 +17,17 @@ def init_db():
                  (id INTEGER PRIMARY KEY, name TEXT, user_id INTEGER)''')
     c.execute('''CREATE TABLE IF NOT EXISTS tasks 
                  (id INTEGER PRIMARY KEY, project_id INTEGER, description TEXT, assigned_to TEXT, status TEXT)''')
-    # Thêm user admin mặc định nếu chưa có
     c.execute("SELECT id FROM users WHERE username = ?", ('admin',))
     if not c.fetchone():
         c.execute("INSERT INTO users (username, password) VALUES (?, ?)", 
                   ('admin', generate_password_hash('1234')))
     conn.commit()
     conn.close()
+
+# Hàm tạo mật khẩu ngẫu nhiên
+def generate_random_password(length=8):
+    characters = string.ascii_letters + string.digits
+    return ''.join(random.choice(characters) for i in range(length))
 
 # Route đăng nhập
 @app.route('/login', methods=['GET', 'POST'])
@@ -62,6 +68,35 @@ def register():
         flash('Registration successful! Please login.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html')
+
+# Route quên mật khẩu
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        username = request.form['username']
+        conn = sqlite3.connect('database.db')
+        c = conn.cursor()
+        c.execute("SELECT id FROM users WHERE username = ?", (username,))
+        user = c.fetchone()
+        if user:
+            new_password = generate_random_password()
+            c.execute("UPDATE users SET password = ? WHERE username = ?", 
+                      (generate_password_hash(new_password), username))
+            conn.commit()
+            conn.close()
+            flash(f'Your new password is: {new_password}. Please login and change it.', 'success')
+            return redirect(url_for('login'))
+        else:
+            conn.close()
+            flash('Username not found!', 'error')
+    return render_template('forgot_password.html')
+
+# Route đăng xuất
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('login'))
 
 # Route trang chính
 @app.route('/')
