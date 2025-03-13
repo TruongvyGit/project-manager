@@ -4,7 +4,7 @@ from app.database import init_db
 # Khởi tạo database
 init_db()
 
-# Tạo ứng dụng
+# Tạo và chạy ứng dụng
 app = create_app()
 
 if __name__ == '__main__':

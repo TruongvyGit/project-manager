@@ -4,7 +4,7 @@ import sqlite3
 import random
 import string
 
-bp = Blueprint('auth', __name__)
+bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 def generate_random_password(length=8):
     characters = string.ascii_letters + string.digits

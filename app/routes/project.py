@@ -1,7 +1,7 @@
 from flask import Blueprint, request, render_template, redirect, url_for, session, flash
 import sqlite3
 
-bp = Blueprint('project', __name__)
+bp = Blueprint('project', __name__, url_prefix='/project')
 
 @bp.route('/')
 def index():
